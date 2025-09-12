@@ -1,0 +1,6 @@
+@OLaughlinTestAPI_HostAddress = http://localhost:5258
+
+GET {{OLaughlinTestAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
