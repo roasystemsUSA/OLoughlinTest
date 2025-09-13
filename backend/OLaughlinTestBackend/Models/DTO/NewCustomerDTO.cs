@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Models.DTO
+﻿namespace Models.DTO
 {
-    internal class NewCustomerDTO
+    public class NewCustomerDTO
     {
+        public string Name { get; set; }
+        public string Email { get; set; }
     }
 }

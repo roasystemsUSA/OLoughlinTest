@@ -24,7 +24,7 @@ namespace Services
         {
             return await _customerRepository.GetAllAsync();
         }
-        public async Task<Customer?> GetByIdAsync(string id)
+        public async Task<Customer?> GetByIdAsync(Guid id)
         {
             return await _customerRepository.GetByIdAsync(id);
         }

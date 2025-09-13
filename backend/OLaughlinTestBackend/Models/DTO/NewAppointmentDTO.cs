@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Models.DTO
 {
-    internal class NewAppointmentDTO
+    public class NewAppointmentDTO
     {
+        public Guid CustomerId { get; set; }  // FK hacia Customers
+        public DateTime DateTime { get; set; } // DATETIME2
+        public string Status { get; set; } = "scheduled"; // NOT NULL, default lógico
     }
 }

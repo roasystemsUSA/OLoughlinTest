@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.Base;
+using Models.DTO;
 using Models.Entities;
 using Services;
 namespace OLaughlinTestAPI.Controllers
@@ -61,6 +62,52 @@ namespace OLaughlinTestAPI.Controllers
             }
         }
 
+        // GET: api/<CustomersController>
+        [HttpGet]
+        [Route("GetMyAppointentsAsync")]
+        [AllowAnonymous]
+        public async Task<BaseResponseModel<IEnumerable<Appointment>>> GetMyAppointentsAsync(Guid customerId)
+        {
+            try
+            {
+                var customers = await _customerService.GetAppointmentsAsync(customerId.ToString());
+                if (customers == null || !customers.Any())
+                {
+                    return new BaseResponseModel<IEnumerable<Appointment>>()
+                    {
+                        ErrorDetails = new ErrorDetailsModel()
+                        {
+                            ErrorType = ErrorDetailsModel.ErrorTypeEnum.Internal,
+                            HttpStatusCode = HttpStatusCodeEnum.NotFound,
+                            Message = "No appointments found"
+                        },
+                        HasError = false,
+                        Result = null
+                    };
+                }
+                return new BaseResponseModel<IEnumerable<Appointment>>()
+                {
+                    Result = customers,
+                    ErrorDetails = new ErrorDetailsModel() { HttpStatusCode = HttpStatusCodeEnum.OK, Message = "Success" },
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BaseResponseModel<IEnumerable<Appointment>>()
+                {
+                    ErrorDetails = new ErrorDetailsModel()
+                    {
+                        ErrorType = ErrorDetailsModel.ErrorTypeEnum.Internal,
+                        HttpStatusCode = HttpStatusCodeEnum.Internal,
+                        Message = ex.Message
+                    },
+                    HasError = true,
+                    Result = null
+                };
+            }
+        }
+
         // GET: api/Customer/id
         [HttpGet("{id}")]
         [AllowAnonymous]
@@ -68,7 +115,22 @@ namespace OLaughlinTestAPI.Controllers
         {
             try
             {
-                var result = await _customerService.GetByIdAsync(id);
+                if (!Guid.TryParse(id, out Guid guidId))
+                {
+                    return new BaseResponseModel<Customer>()
+                    {
+                        ErrorDetails = new ErrorDetailsModel()
+                        {
+                            ErrorType = ErrorDetailsModel.ErrorTypeEnum.Internal,
+                            HttpStatusCode = HttpStatusCodeEnum.BadRequest,
+                            Message = "Invalid customer id"
+                        },
+                        HasError = true,
+                        Result = null
+                    };
+                }
+
+                var result = await _customerService.GetByIdAsync(guidId); // ahora recibe Guid
                 if (result == null)
                 {
                     return new BaseResponseModel<Customer>()
@@ -83,14 +145,13 @@ namespace OLaughlinTestAPI.Controllers
                         Result = null
                     };
                 }
-                // Create a response model
-                BaseResponseModel<Customer> response = new BaseResponseModel<Customer>()
+
+                return new BaseResponseModel<Customer>()
                 {
                     Result = result,
                     ErrorDetails = new ErrorDetailsModel() { HttpStatusCode = HttpStatusCodeEnum.OK, Message = "Success" },
                     HasError = false
                 };
-                return response;
             }
             catch (Exception ex)
             {
@@ -111,13 +172,19 @@ namespace OLaughlinTestAPI.Controllers
 
         // POST: api/Customer
         [HttpPost]
-        public async Task<BaseResponseModel<Customer>> PostCustomer(Customer customer)
+        public async Task<BaseResponseModel<Customer>> PostCustomer(NewCustomerDTO customer)
         {
             try
             {
+                Customer newCustomer = new Customer
+                {
+                    Id = Guid.NewGuid(), // Genera un nuevo GUID para el ID
+                    Name = customer.Name,
+                    Email = customer.Email,
+                };
 
                 // Add the customer to the database
-                var insertedCustomer = await _customerService.AddAsync(customer);
+                var insertedCustomer = await _customerService.AddAsync(newCustomer);
 
 
                 BaseResponseModel<Customer> result = new BaseResponseModel<Customer>()
