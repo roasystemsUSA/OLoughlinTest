@@ -26,6 +26,7 @@ frontend en **Angular 20**, persistencia en **SQL Server**, y despliegue en **II
 ## 🗄️ Base de Datos
 Esquema definido en `/db/schema.sql`.
 
+Datos iniciales de ejemplo definidos en `/db/seed.sql`.
 ```sql
 CREATE TABLE Customers (
     Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
