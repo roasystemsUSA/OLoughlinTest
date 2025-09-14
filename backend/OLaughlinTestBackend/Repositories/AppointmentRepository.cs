@@ -12,11 +12,18 @@ namespace Repositories
         }
         public async Task<Appointment?> GetByIdAsync(string id)
         {
-            return await _context.Appointments.FindAsync(id);
+            if (!Guid.TryParse(id, out var guid))
+                return null;
+
+            return await _context.Appointments
+                .Include(a => a.Customer)
+                .FirstOrDefaultAsync(a => a.Id == guid);
         }
         public async Task<IEnumerable<Appointment>> GetAllAsync()
         {
-            return await _context.Appointments.ToListAsync();
+            return await _context.Appointments
+                .Include(a => a.Customer)
+                .ToListAsync();
         }
         public async Task<Appointment> AddAsync(Appointment appointment)
         {

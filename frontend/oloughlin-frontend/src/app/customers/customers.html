@@ -1,0 +1,45 @@
+<div>
+  <h2>Clientes</h2>
+  <div>
+    <input type="text" placeholder="Filtrar por nombre" [(ngModel)]="filterName" (input)="applyFilters()" />
+    <input type="text" placeholder="Filtrar por email" [(ngModel)]="filterEmail" (input)="applyFilters()" />
+    <button (click)="openAddModal()">Agregar Cliente</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let customer of filteredCustomers">
+        <td>{{ customer.name }}</td>
+        <td>{{ customer.email }}</td>
+        <td>
+          <button (click)="openEditModal(customer)">Editar</button>
+          <button (click)="openDeleteModal(customer)">Eliminar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Modal Agregar/Editar -->
+  <div *ngIf="(showAddModal || showEditModal) && selectedCustomer" class="modal">
+    <h3>{{ showAddModal ? 'Agregar Cliente' : 'Editar Cliente' }}</h3>
+    <form #customerForm="ngForm" (ngSubmit)="saveCustomer(selectedCustomer)">
+      <input type="text" [(ngModel)]="selectedCustomer.name" name="name" required placeholder="Nombre" />
+      <input type="email" [(ngModel)]="selectedCustomer.email" name="email" required placeholder="Email" />
+      <button type="submit">Guardar</button>
+      <button type="button" (click)="closeModals()">Cancelar</button>
+    </form>
+  </div>
+
+  <!-- Modal Eliminar -->
+  <div *ngIf="showDeleteModal" class="modal">
+    <p>¿Seguro que deseas eliminar este cliente?</p>
+    <button (click)="deleteCustomer()">Confirmar</button>
+    <button (click)="closeModals()">Cancelar</button>
+  </div>
+</div>
