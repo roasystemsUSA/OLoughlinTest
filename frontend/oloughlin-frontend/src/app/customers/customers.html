@@ -1,45 +1,131 @@
-<div>
-  <h2>Clientes</h2>
-  <div>
-    <input type="text" placeholder="Filtrar por nombre" [(ngModel)]="filterName" (input)="applyFilters()" />
-    <input type="text" placeholder="Filtrar por email" [(ngModel)]="filterEmail" (input)="applyFilters()" />
-    <button (click)="openAddModal()">Agregar Cliente</button>
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a routerLink="/home">
+        <i class="bi bi-house-door"></i> Home
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">
+      Clientes
+    </li>
+  </ol>
+</nav>
+<div class="container py-4">
+  <h2 class="mb-4">Clientes</h2>
+  <div class="mb-3 row g-2 align-items-center">
+    <div class="col-md-4">
+      <input class="form-control" type="text" placeholder="Filtrar por nombre" [(ngModel)]="filterName" (input)="applyFilters()" />
+    </div>
+    <div class="col-md-4">
+      <input class="form-control" type="text" placeholder="Filtrar por email" [(ngModel)]="filterEmail" (input)="applyFilters()" />
+    </div>
+    <div class="col-md-4 text-end">
+      <button class="btn btn-primary" (click)="openAddModal()">
+        <i class="bi bi-person-plus"></i> Agregar Cliente
+      </button>
+    </div>
   </div>
-  <table>
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Email</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let customer of filteredCustomers">
-        <td>{{ customer.name }}</td>
-        <td>{{ customer.email }}</td>
-        <td>
-          <button (click)="openEditModal(customer)">Editar</button>
-          <button (click)="openDeleteModal(customer)">Eliminar</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+    <table class="table table-striped table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th scope="col" style="cursor:pointer;" (click)="sortBy('name')">
+            Nombre
+            <span *ngIf="sortColumn === 'name'">
+              <i [class]="sortDirection === 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+            </span>
+          </th>
+          <th scope="col" style="cursor:pointer;" (click)="sortBy('email')">
+            Email
+            <span *ngIf="sortColumn === 'email'">
+              <i [class]="sortDirection === 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+            </span>
+          </th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let customer of pagedCustomers">
+          <td>{{ customer.name }}</td>
+          <td>{{ customer.email }}</td>
+          <td>
+            <button class="btn btn-sm btn-info me-2" (click)="openEditModal(customer)">
+              <i class="bi bi-pencil"></i> Editar
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="openDeleteModal(customer)">
+              <i class="bi bi-trash"></i> Eliminar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación Bootstrap -->
+  <nav *ngIf="totalPages > 1" class="mt-3">
+    <ul class="pagination justify-content-center">
+      <li class="page-item" [class.disabled]="currentPage === 1">
+        <button class="page-link" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">&laquo;</button>
+      </li>
+      <li class="page-item" *ngFor="let page of [].constructor(totalPages); let i = index" [class.active]="currentPage === i + 1">
+        <button class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</button>
+      </li>
+      <li class="page-item" [class.disabled]="currentPage === totalPages">
+        <button class="page-link" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">&raquo;</button>
+      </li>
+    </ul>
+  </nav>
 
   <!-- Modal Agregar/Editar -->
-  <div *ngIf="(showAddModal || showEditModal) && selectedCustomer" class="modal">
-    <h3>{{ showAddModal ? 'Agregar Cliente' : 'Editar Cliente' }}</h3>
-    <form #customerForm="ngForm" (ngSubmit)="saveCustomer(selectedCustomer)">
-      <input type="text" [(ngModel)]="selectedCustomer.name" name="name" required placeholder="Nombre" />
-      <input type="email" [(ngModel)]="selectedCustomer.email" name="email" required placeholder="Email" />
-      <button type="submit">Guardar</button>
-      <button type="button" (click)="closeModals()">Cancelar</button>
-    </form>
+  <div *ngIf="(showAddModal || showEditModal) && selectedCustomer">
+    <div class="modal fade show" tabindex="-1" style="display: block;">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ showAddModal ? 'Agregar Cliente' : 'Editar Cliente' }}</h5>
+            <button type="button" class="btn-close" (click)="closeModals()"></button>
+          </div>
+          <form #customerForm="ngForm" (ngSubmit)="saveCustomer(selectedCustomer)">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input class="form-control" type="text" [(ngModel)]="selectedCustomer.name" name="name" required placeholder="Nombre" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input class="form-control" type="email" [(ngModel)]="selectedCustomer.email" name="email" required placeholder="Email" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-success">Guardar</button>
+              <button type="button" class="btn btn-secondary" (click)="closeModals()">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade show" (click)="closeModals()"></div>
   </div>
 
   <!-- Modal Eliminar -->
-  <div *ngIf="showDeleteModal" class="modal">
-    <p>¿Seguro que deseas eliminar este cliente?</p>
-    <button (click)="deleteCustomer()">Confirmar</button>
-    <button (click)="closeModals()">Cancelar</button>
+  <div *ngIf="showDeleteModal">
+    <div class="modal fade show" tabindex="-1" style="display: block;">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Eliminar Cliente</h5>
+            <button type="button" class="btn-close" (click)="closeModals()"></button>
+          </div>
+          <div class="modal-body">
+            <p>¿Seguro que deseas eliminar este cliente?</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-danger" (click)="deleteCustomer()">Confirmar</button>
+            <button class="btn btn-secondary" (click)="closeModals()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade show" (click)="closeModals()"></div>
   </div>
 </div>
